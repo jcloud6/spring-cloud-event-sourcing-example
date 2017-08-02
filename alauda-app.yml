@@ -1,0 +1,185 @@
+config-service:
+  image: 10.0.0.6:5000/sc-event/config-service
+  size: S 
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:8888:8888
+  net: flannel
+
+discovery-service:
+  image: 10.0.0.6:5000/sc-event/discovery-service
+  size: M
+  alauda_lb: ALB
+  links:
+   - config-service
+  ports:
+   - haproxy-10-0-0-6:8761:8761
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel
+
+mysql:
+  image: 10.0.0.6:5000/sc-event/mysql:sc
+  size: S
+  ports:
+   - haproxy-10-0-0-6:3306:3306
+  alauda_lb: ALB
+  environment:
+   - MYSQL_ROOT_PASSWORD=dbpass
+   - MYSQL_DATABASE=dev
+  links:
+   - config-service
+   - discovery-service
+  net: flannel 
+
+neo4j:
+  image: 10.0.0.6:5000/sc-event/neo4j:2.3
+  size: S
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:7474:7474
+  environment:
+   - NEO4J_AUTH=none
+  links:
+   - config-service
+   - discovery-service
+  net: flannel 
+
+mongo:
+  image: 10.0.0.6:5000/sc-event/mongo:3.3
+  size: S
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:27017:27017
+  links:
+   - config-service
+   - discovery-service
+  net: flannel 
+
+redis:
+  image: 10.0.0.6:5000/sc-event/redis:3.0
+  size: S
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:6379:6379
+  links:
+   - config-service
+   - discovery-service
+  net: flannel     
+
+hystrix-dashboard:
+  image: 10.0.0.6:5000/sc-event/hystrix-dashboard
+  size: S
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  links:
+   - config-service
+   - discovery-service
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:6161:6161
+  net: flannel
+
+online-store-web:
+  image: 10.0.0.6:5000/sc-event/online-store-web
+  size: M
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:8787:8787
+  links:
+   - discovery-service
+   - config-service
+   - user-service
+   - edge-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel
+
+user-service:
+  image: 10.0.0.6:5000/sc-event/user-service
+  size: M
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:8181:8181
+  links:
+   - mysql
+   - discovery-service
+   - config-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
+
+account-service:
+  image: 10.0.0.6:5000/sc-event/account-service
+  size: M
+  links:
+   - user-service
+   - discovery-service
+   - config-service
+   - mysql
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
+
+edge-service:
+  image: 10.0.0.6:5000/sc-event/edge-service
+  size: M
+  alauda_lb: ALB
+  ports:
+   - haproxy-10-0-0-6:9999:9999
+  links:
+   - user-service
+   - discovery-service
+   - config-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
+
+inventory-service:
+  image: 10.0.0.6:5000/sc-event/inventory-service
+  size: M
+  links:
+   - neo4j
+   - discovery-service
+   - config-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
+
+order-service:
+  image: 10.0.0.6:5000/sc-event/order-service
+  size: M
+  links:
+   - mongo
+   - discovery-service
+   - config-service
+   - user-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
+
+catalog-service:
+  image: 10.0.0.6:5000/sc-event/catalog-service
+  size: M
+  links:
+   - redis
+   - mysql
+   - discovery-service
+   - config-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
+
+shopping-cart-service:
+  image: 10.0.0.6:5000/sc-event/shopping-cart-service
+  size: M
+  links:
+   - mysql
+   - discovery-service
+   - config-service
+   - user-service
+  environment:
+   - SPRING_PROFILES_ACTIVE=docker
+  net: flannel 
