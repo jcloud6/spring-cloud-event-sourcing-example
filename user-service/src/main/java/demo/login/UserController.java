@@ -1,14 +1,20 @@
 package demo.login;
 
+import java.security.Principal;
+
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-
 @RestController
+
 public class UserController {
-    @RequestMapping("/user")
+
+    @RequestMapping(value="/user")
     public Principal user(Principal user) {
         return user;
     }
+
 }

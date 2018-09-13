@@ -1,21 +1,7 @@
 package demo.api.v1;
 
-import demo.cart.*;
-import demo.catalog.Catalog;
-import demo.inventory.Inventory;
-import demo.order.Order;
-import demo.order.OrderEvent;
-import demo.order.OrderEventType;
-import demo.user.User;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import reactor.core.publisher.Flux;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,8 +9,29 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import demo.cart.CartEvent;
+import demo.cart.CartEventRepository;
+import demo.cart.CartEventType;
+import demo.cart.CheckoutResult;
+import demo.cart.LineItem;
+import demo.cart.ShoppingCart;
+import demo.catalog.Catalog;
+import demo.inventory.Inventory;
+import demo.order.Order;
+import demo.order.OrderEvent;
+import demo.order.OrderEventType;
+import demo.user.User;
+import reactor.core.publisher.Flux;
 
 /**
  * The {@link ShoppingCartServiceV1} implements business logic for aggregating the state of
@@ -68,6 +75,7 @@ public class ShoppingCartServiceV1 {
      * @param cartEvent is the event detailing the action performed by the user
      * @return a flag indicating whether the result was a success
      */
+    @Transactional
     public Boolean addCartEvent(CartEvent cartEvent) {
         User user = getAuthenticatedUser();
         if (user != null) {
@@ -79,6 +87,7 @@ public class ShoppingCartServiceV1 {
         return true;
     }
 
+    @Transactional
     public Boolean addCartEvent(CartEvent cartEvent, User user) {
         if (user != null) {
             cartEvent.setUserId(user.getId());
@@ -95,6 +104,7 @@ public class ShoppingCartServiceV1 {
      * @return an aggregate object derived from events performed by the user
      * @throws Exception
      */
+    @Transactional
     public ShoppingCart getShoppingCart() throws Exception {
         User user = oAuth2RestTemplate.getForObject("http://user-service/uaa/v1/me", User.class);
         ShoppingCart shoppingCart = null;
@@ -113,6 +123,7 @@ public class ShoppingCartServiceV1 {
      * @return a shopping cart representing the aggregate state of the user's cart
      * @throws Exception
      */
+    @Transactional
     public ShoppingCart aggregateCartEvents(User user, Catalog catalog) throws Exception {
         Flux<CartEvent> cartEvents =
                 Flux.fromStream(cartEventRepository.getCartEventStreamByUser(user.getId()));
@@ -133,6 +144,7 @@ public class ShoppingCartServiceV1 {
      *
      * @return the result of the checkout operation
      */
+    @Transactional
     public CheckoutResult checkout() throws Exception {
         CheckoutResult checkoutResult = new CheckoutResult();
 
@@ -194,6 +206,7 @@ public class ShoppingCartServiceV1 {
         return checkoutResult;
     }
 
+    @Transactional
     public Boolean checkAvailableInventory(CheckoutResult checkoutResult, ShoppingCart currentCart,
                                            Map<String, Long> inventoryItems) {
         Boolean hasInventory = true;

@@ -1,5 +1,6 @@
 spring.profiles.active: development
 ---
+
 spring:
   profiles: development
   neo4j:
@@ -14,11 +15,24 @@ eureka:
     serviceUrl:
       defaultZone: http://192.168.99.100:8761/eureka/
 ---
+
 spring:
   profiles: docker
+  application:
+    name: inventory-service
+  data.neo4j:
+    uri: http://user:password@neo4j:7474
   neo4j:
-    host: ${SPRING_NEO4J_HOST:neo4j}
-    port: ${SPRING_NEO4J_PORT:7474}
+    host: neo4j
+    port: 7474
+    username: neo4j
+    password: neo4j
+  sleuth:
+    sampler:
+      percentage: 1.0
+    traceId128: true
+  zipkin:
+    base-url: http://zipkin:9411/
 eureka:
   instance:
     prefer-ip-address: true
@@ -27,6 +41,9 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: http://discovery-service:8761/eureka/
+
+server.session.cookie.name: inventory-service
+
 ---
 spring:
   profiles: test

@@ -2,8 +2,9 @@ spring:
   application:
     name: inventory-service
 server:
-  port: 0
+  port: 8080
 ---
+
 spring:
   profiles: docker
   cloud:

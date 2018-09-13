@@ -1,39 +1,66 @@
 package demo;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+
 import demo.address.AddressRepository;
 import demo.catalog.CatalogRepository;
 import demo.inventory.InventoryRepository;
 import demo.product.ProductRepository;
 import demo.shipment.ShipmentRepository;
 import demo.warehouse.WarehouseRepository;
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
-import org.springframework.data.neo4j.server.Neo4jServer;
-import org.springframework.data.neo4j.server.RemoteServer;
-import org.springframework.util.StringUtils;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Configuration
-class GraphConfiguration extends Neo4jConfiguration {
+
+@ComponentScan(basePackages = "demo")
+//@EnableNeo4jRepositories(basePackages = "demo")
+//@EntityScan("demo")
+public class GraphConfiguration { //extends Neo4jConfiguration {
 
     @Autowired
     private Neo4jProperties properties;
 
+    private Session session = null;
+
+    
+    // @Bean
+    // public Neo4jServer neo4jServer() {
+    //     String uri = this.properties.getUri();
+    //     String pw = this.properties.getPassword();
+    //     String user = this.properties.getUsername();
+    //     if (StringUtils.hasText(pw) && StringUtils.hasText(user)) {
+    //         return new RemoteServer(uri, user, pw);
+    //     }
+    //     return new RemoteServer(uri);
+    // }
+    
+
     @Bean
-    public Neo4jServer neo4jServer() {
+    public org.neo4j.ogm.config.Configuration configuration() {
         String uri = this.properties.getUri();
-        String pw = this.properties.getPassword();
-        String user = this.properties.getUsername();
-        if (StringUtils.hasText(pw) && StringUtils.hasText(user)) {
-            return new RemoteServer(uri, user, pw);
-        }
-        return new RemoteServer(uri);
+        org.neo4j.ogm.config.Configuration config = new org.neo4j.ogm.config.Configuration();
+        config
+            .driverConfiguration()
+            .setDriverClassName
+                ("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+            .setURI(uri);
+        return config;
+        // return new org.neo4j.ogm.config.Configuration.Builder()
+        //     .uri(uri)  //.uri("bolt://localhost")
+        //     .build();
+    }
+
+    @Bean
+    public Neo4jTransactionManager transactionManager() throws Exception {
+        return new Neo4jTransactionManager(getSessionFactory());
     }
 
     @Bean
@@ -54,11 +81,18 @@ class GraphConfiguration extends Neo4jConfiguration {
                         .map( c -> getClass().getPackage().getName())
                         .collect(Collectors.toList())
                         .toArray(new String[packageClasses.length]);
-        return new SessionFactory(packageNames);
+        return new SessionFactory(configuration(), packageNames);
     }
 
-    @Bean
+
+    
+    //@Bean
     public Session getSession() throws Exception {
-        return super.getSession();
+        if (session == null) {
+            session = getSessionFactory().openSession();
+        }
+        //return super.getSession();
+        return session;
     }
+    
 }

@@ -78,4 +78,6 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
             return new Date(source);
         }
     }
+
+
 }

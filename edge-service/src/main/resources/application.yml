@@ -35,6 +35,12 @@ spring:
   profiles: docker
   application:
     name: edge-service
+  sleuth:
+    sampler:
+      percentage: 1.0
+    traceId128: true
+  zipkin:
+    base-url: http://zipkin:9411/
 zuul:
   ignored-services: '*'
   ignoredPatterns: /**/api/**
@@ -49,7 +55,8 @@ zuul:
 security:
   oauth2:
     resource:
-      userInfoUri: http://user-service:8181/uaa/user
+      userInfoUri: http://${ALB_IP}:8181/uaa/user
+      filter-order: 3
   ignored: /catalog/**
 eureka:
   instance:
@@ -59,6 +66,9 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: http://discovery-service:8761/eureka/
+
+server.session.cookie.name: edge-service
+
 hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 60000
 ribbon:
   ConnectTimeout: 3000

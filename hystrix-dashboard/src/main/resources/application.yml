@@ -1,0 +1,41 @@
+server:
+  port: 6161
+spring:
+  application:
+    name: hystrix-dashboard
+---
+spring:
+  profiles: docker
+  cloud:
+    config:
+      uri: http://config-service:8888
+
+server.session.cookie.name: hystrix-dashboard
+
+eureka:
+ instance:
+   hostname: hystrix-dashboard
+   prefer-ip-address: true
+ client:
+   registerWithEureka: true
+   fetchRegistry: true
+   serviceUrl:
+           defaultZone: http://discovery-service:8761/eureka/
+
+turbine:
+  appConfig: user-service,CATALOG-SERVICE
+  clusterNameExpression: new String('default')
+  
+---
+spring:
+  profiles: default
+  cloud:
+    config:
+      uri: http://localhost:8888
+spring.profiles.active: development
+---
+spring:
+  profiles: cloud
+  cloud:
+    config:
+      uri: ${vcap.services.config-service.credentials.uri:http://localhost:8888}

@@ -14,6 +14,7 @@ import org.neo4j.ogm.annotation.Transient;
 public class Product {
 
     @GraphId
+    //@Id @GeneratedValue 
     private Long id;
     private String name, productId, description;
     private Double unitPrice;

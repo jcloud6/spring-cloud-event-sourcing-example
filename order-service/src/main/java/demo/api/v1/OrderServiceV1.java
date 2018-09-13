@@ -1,18 +1,24 @@
 package demo.api.v1;
 
-import demo.account.Account;
-import demo.address.AddressType;
-import demo.order.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.stereotype.Service;
+
+import demo.account.Account;
+import demo.address.AddressType;
+import demo.order.LineItem;
+import demo.order.Order;
+import demo.order.OrderEvent;
+import demo.order.OrderEventRepository;
+import demo.order.OrderEventType;
+import demo.order.OrderRepository;
+import reactor.core.publisher.Flux;
 
 @Service
 public class OrderServiceV1 {

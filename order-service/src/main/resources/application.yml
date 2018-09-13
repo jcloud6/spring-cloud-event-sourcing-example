@@ -9,7 +9,7 @@ spring:
   jackson:
     date-format: "YYYY-MM-dd"
     serialization:
-      write_dates_as_timestamps: true
+      WRITE_DATES_AS_TIMESTAMPS: true
 security:
   oauth2:
     resource:
@@ -37,11 +37,18 @@ spring:
   jackson:
     date-format: "YYYY-MM-dd"
     serialization:
-      write_dates_as_timestamps: true
+      WRITE_DATES_AS_TIMESTAMPS: true
+  sleuth:
+    sampler:
+      percentage: 1.0
+    traceId128: true
+  zipkin:
+    base-url: http://zipkin:9411/
 security:
   oauth2:
     resource:
-      userInfoUri: http://user-service:8181/uaa/user
+      userInfoUri: http://${ALB_IP}:8181/uaa/user
+      filter-order: 3
     client:
       client-id: acme
 eureka:
@@ -52,3 +59,5 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: http://discovery-service:8761/eureka/
+
+server.session.cookie.name: order-service
